@@ -2,7 +2,7 @@ import argparse
 import csv
 import re
 import requests
-
+from datetime import datetime
 
 def download_log_file(url):
     response = requests.get(url)
@@ -34,7 +34,13 @@ def find_most_popular_browser(file_rows):
             browser_counts['Safari'] += 1
     return max(browser_counts, key=browser_counts.get)
 
-
+def get_hits_per_hour(file_rows):
+    hour_counts = {i: 0 for i in range(24)}
+    for row in file_rows:
+        datetime_obj = datetime.strptime(row[1], "%Y-%m-%d %H:%M:%S")
+        hours = datetime_obj.hour
+        hour_counts[hours] += 1
+    return hour_counts
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -45,9 +51,13 @@ if __name__ == '__main__':
     file_rows = process_file(file_content)
     image_hits, image_hits_percentage = search_for_image_hits(file_rows)
     most_popular_browser = find_most_popular_browser(file_rows)
-    # hour_counts = get_hits_per_hour(file_rows)
+    hour_counts = get_hits_per_hour(file_rows)
 
     print(f'Image requests account for {image_hits_percentage:.1f}% of all requests')
     print(f'The most popular browser is {most_popular_browser}')
+    print(hour_counts.items())
+    for hour, count in hour_counts.items():
+        print(f'Hour {hour} has {count} hits')
+
 
 
